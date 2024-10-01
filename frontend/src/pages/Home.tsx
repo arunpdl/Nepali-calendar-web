@@ -1,14 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
-import MonthCalendar from "../components/MonthCalendar";
-import { fetchUserEvents, fetchYearlyData } from "../helper/api";
-import YearMonthPicker from "../components/YearMonthPicker";
-import { useParams } from "react-router-dom";
-import NepaliDate from "nepali-date-converter";
 import { useQuery } from "@tanstack/react-query";
+import NepaliDate from "nepali-date-converter";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import MonthCalendar from "../components/MonthCalendar";
 import Spinner from "../components/Spinner";
+import YearMonthPicker from "../components/YearMonthPicker";
+import { fetchUserEvents, fetchYearlyData } from "../helper/api";
 import { CalendarData, Months } from "../types/calendar.types";
 import { CalendarEventsResult } from "../types/events.types";
 import UpcomingEvents from "./UpcomingEvents";
+
 function Home() {
   const { BSYear, BSMonth, pageType = "calendar" } = useParams();
 
@@ -54,20 +55,15 @@ function Home() {
 
   return (
     <>
-      <div>
-        <div className="mx-auto mt-1 max-w-lg text-center lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:mt-9 xl:col-start-9">
-          <YearMonthPicker
-            currentNepaliDate={currentNepaliDate}
-            setCurrentNepaliDate={setCurrentNepaliDate}
-          />
-          {isLoading ? (
-            <Spinner className="h-5 w-5 " />
-          ) : pageType === "upcoming" ? (
-            <UpcomingEvents monthData={monthData} />
-          ) : (
-            <MonthCalendar monthData={monthData} userEvents={userEvents} />
-          )}
-        </div>
+      <div className="mx-auto mt-1 max-w-lg text-center lg:col-start-8 lg:col-end-13 lg:row-start-1 lg:mt-9 xl:col-start-9">
+        <YearMonthPicker currentNepaliDate={currentNepaliDate} setCurrentNepaliDate={setCurrentNepaliDate} />
+        {isLoading ? (
+          <Spinner className="h-5 w-5 " />
+        ) : pageType === "upcoming" ? (
+          <UpcomingEvents monthData={monthData} />
+        ) : (
+          <MonthCalendar monthData={monthData} userEvents={userEvents} />
+        )}
       </div>
     </>
   );
