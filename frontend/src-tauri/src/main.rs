@@ -6,11 +6,6 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec!["--flag1", "--flag2"])))
-        // .setup(|app| {
-        //     let window = app.get_window("main").unwrap();
-        //     window.set_skip_taskbar(true).unwrap();
-        //     Ok(())
-        // })
         .system_tray(tray::create_tray())
         .on_system_tray_event(|app, event| tray::handle_tray_event(app, event))
         .on_window_event(|event| {

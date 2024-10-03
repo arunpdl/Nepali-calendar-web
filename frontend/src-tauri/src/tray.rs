@@ -22,7 +22,7 @@ pub fn create_tray() -> SystemTray {
 pub fn handle_tray_event(app: &AppHandle, event: SystemTrayEvent) {
     match event {
         SystemTrayEvent::LeftClick { .. } => {
-            toggle_window(app);
+            toggle_window(app, "calendar", (600.0, 680.0));
         }
         SystemTrayEvent::RightClick { .. } => {
             // Explicitly show the menu on right-click
@@ -31,13 +31,13 @@ pub fn handle_tray_event(app: &AppHandle, event: SystemTrayEvent) {
         SystemTrayEvent::MenuItemClick { id, .. } => {
             match id.as_str() {
                 "calendar" => {
-                    show_window_with_route(app, "calendar");
+                    create_or_show_window(app, "calendar", (600.0, 680.0));
                 }
                 "date-converter" => {
-                    open_date_converter(app)
+                    create_or_show_window(app, "converter", (400.0, 500.0))
                 }
                 "settings" => {
-                    show_window_with_route(app, "app-settings");
+                    create_or_show_window(app, "app-settings", (400.0, 500.0));
                 }
                 "quit" => {
                     app.exit(0);
@@ -49,32 +49,33 @@ pub fn handle_tray_event(app: &AppHandle, event: SystemTrayEvent) {
     }
 }
 
-fn toggle_window(app: &AppHandle) {
-    if let Some(window) = app.get_window("main") {
+fn toggle_window(app: &AppHandle, route: &str, size: (f64, f64)) {
+    if let Some(window) = app.get_window("tray") {
+        // let _ = window.move_window(Position::TrayCenter);
         if window.is_visible().unwrap() {
             window.hide().unwrap();
-        } else {
-            show_window(app);
+            return;
         }
     }
+    create_or_show_window(app, route, size);
 }
 
-fn show_window(app: &AppHandle) {
-    let main_window = app.get_window("tray");
-    match main_window {
+fn create_or_show_window(app: &AppHandle, route: &str, size: (f64, f64)) {
+    let window = app.get_window("tray");
+    match window {
         Some(window) => {
-            let _ = window.move_window(Position::BottomRight);
+            window.set_size(PhysicalSize::new(size.0, size.1)).unwrap();
             window.show().unwrap();
             window.set_focus().unwrap();
         }
-        _none => {
+        None => {
             let window = WindowBuilder::new(
                 app,
                 "tray",
-                tauri::WindowUrl::App("calendar".into())
+                tauri::WindowUrl::App(route.into())  // Dynamic content based on route
             )
             .title("Miti Calendar")
-            .inner_size(600.0, 670.0)
+            .inner_size(size.0, size.1)
             .resizable(true)
             .decorations(false)
             .skip_taskbar(true)
@@ -82,11 +83,34 @@ fn show_window(app: &AppHandle) {
             .always_on_top(true)
             .build()
             .unwrap();
-            let _ = window.move_window(Position::BottomRight);
+
+            // let _ = window.move_window(Position::TrayCenter);  // Positioning the window
             window.show().unwrap();
             window.set_focus().unwrap();
-
         }
+    }
+
+    // Dynamically set the content
+    change_window_content(app, route);
+}
+
+fn change_window_content(app: &AppHandle, route: &str) {
+    if let Some(window) = app.get_window("tray") {
+        println!("Navigating to route: {}", route);
+        window.emit("navigate", Payload {
+            route: route.to_string(),
+            window_id: "tray".to_string()
+        }).unwrap();
+    }
+}
+
+fn set_window_position(app: &AppHandle) {
+    if let Some(window) = app.get_window("tray") {
+        if let Err(e) = window.move_window(Position::TrayCenter) {
+            println!("Error moving window to tray position: {}, falling back to default position", e);
+            let _ = window.move_window(Position::BottomRight);
+        }
+        
     }
 }
 
@@ -96,40 +120,3 @@ struct Payload {
   window_id: String
 }
 
-fn show_window_with_route(app: &AppHandle, route: &str) {
-    show_window(app);
-    if let Some(window) = app.get_window("main") {
-        println!("Navigating to route: {}", route);
-        window.emit("navigate", Payload {
-            route: route.to_string(),
-            window_id: "main".to_string()
-        }).unwrap();
-    }
-}
-
-fn open_date_converter(app: &AppHandle) {
-    let date_converter_window = app.get_window("date_converter");
-    match date_converter_window {
-        Some(window) => {
-            window.show().unwrap();
-            window.set_focus().unwrap();
-            let _ = window.move_window(Position::BottomRight);
-        }
-        _none => {
-            let window = WindowBuilder::new(
-                app,
-                "date_converter",
-                tauri::WindowUrl::App("converter".into())
-            )
-            .title("Date Converter")
-            .inner_size(400.0, 500.0)
-            .decorations(false)
-            .focused(true)
-            .always_on_top(true)
-            .skip_taskbar(true)
-            .build()
-            .unwrap();
-        let _ = window.move_window(Position::BottomRight);
-        }
-    }
-}
