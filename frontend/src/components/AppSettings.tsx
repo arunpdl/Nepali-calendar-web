@@ -1,6 +1,6 @@
 import { Switch } from "@headlessui/react";
 import { useEffect, useState } from "react";
-import { disable, enable, isEnabled } from "tauri-plugin-autostart-api";
+import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
 
 const AppSettings = () => {
   const [autoStartEnabled, setAutoStartEnabled] = useState(false);

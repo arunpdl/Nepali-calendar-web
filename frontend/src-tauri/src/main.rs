@@ -1,25 +1,6 @@
-mod tray;
-
-use tauri_plugin_autostart::MacosLauncher;
+// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_positioner::init())
-        .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec!["--flag1", "--flag2"])))
-        .system_tray(tray::create_tray())
-        .on_system_tray_event(|app, event| tray::handle_tray_event(app, event))
-        .on_window_event(|event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event.event() {
-                event.window().hide().unwrap();
-                api.prevent_close();
-            }
-         
-            if let tauri::WindowEvent::Focused(focused) = event.event() {
-                if !focused {
-                    event.window().hide().unwrap()
-                }
-            }
-        })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    miti_nepali_calendar_lib::run()
 }
